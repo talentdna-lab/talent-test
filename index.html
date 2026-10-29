@@ -556,8 +556,8 @@ function toast(msg){
 }
 
 function drawQR(ctx,x,y,size){
-  /* 真实二维码：https://1586454305-glitch.github.io/talent-test/ */
-  const DATA='33|fee4ffbf8|82fc2b208|ba4058ae8|babb9aae8|ba1e0aae8|827418208|feaaaabf8|e26b800|b73a76a58|a17a9fb68|7222c55d8|adf6a9d58|daf8225d8|99bce2970|1b41a0bc0|69e2bc760|3bb33cae0|edcd492d8|c6b1ceda0|186981680|d6382f070|a17925a48|3b5c85238|5836b0990|ae3d40f80|b7de8c0|fede9da80|82ba8e8f0|ba4949fb8|bac87b568|baf635f40|8257d0d88|fe8fcf6e0';
+    /* 真实二维码：https://talentdna-lab.github.io/talent-test/ */
+  const DATA='33|fe84f33f8|82f42f208|ba7147ae8|baaa8fae8|ba46092e8|825c78a08|feaaaabf8|f848800|b772f5258|e9283d368|938a41dd8|8137b0950|efa924dd0|18a4e2450|d74de02c0|d1b89c660|767d3f6e0|10694fac8|9bd5c2db0|5e685a90|3ca29968|a80561248|2b3ec7ed8|59d6b3550|9e39c2f98|b1f18c0|fe9c9ba90|82cf0f8f8|ba2f59fb0|bac039158|bad214b60|8207d2f88|fef9e70a0';
   const parts=DATA.split('|'), n=+parts[0], quiet=4;
   const cell=size/(n+quiet*2), q=quiet*cell;
   ctx.save();
