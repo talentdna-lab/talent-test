@@ -556,21 +556,17 @@ function toast(msg){
 }
 
 function drawQR(ctx,x,y,size){
-  /* 占位二维码：交付时替换为你的真实小程序码 / 商品二维码图片 */
+  /* 真实二维码：https://1586454305-glitch.github.io/talent-test/ */
+  const DATA='33|fee4ffbf8|82fc2b208|ba4058ae8|babb9aae8|ba1e0aae8|827418208|feaaaabf8|e26b800|b73a76a58|a17a9fb68|7222c55d8|adf6a9d58|daf8225d8|99bce2970|1b41a0bc0|69e2bc760|3bb33cae0|edcd492d8|c6b1ceda0|186981680|d6382f070|a17925a48|3b5c85238|5836b0990|ae3d40f80|b7de8c0|fede9da80|82ba8e8f0|ba4949fb8|bac87b568|baf635f40|8257d0d88|fe8fcf6e0';
+  const parts=DATA.split('|'), n=+parts[0], quiet=4;
+  const cell=size/(n+quiet*2), q=quiet*cell;
   ctx.save();
-  ctx.fillStyle='#0d0620'; ctx.fillRect(x-6,y-6,size+12,size+12);
-  ctx.fillStyle='#f3edff';
-  const cell = size/21;
-  const finder=(fx,fy)=>{ ctx.fillRect(x+fx*cell,y+fy*cell,cell*7,cell*7);
-    ctx.fillStyle='#0d0620'; ctx.fillRect(x+(fx+1)*cell,y+(fy+1)*cell,cell*5,cell*5);
-    ctx.fillStyle='#f3edff'; ctx.fillRect(x+(fx+2)*cell,y+(fy+2)*cell,cell*3,cell*3); };
-  finder(0,0); finder(14,0); finder(0,14);
-  let seed = 7;
-  for (let r=0;r<21;r++) for (let c=0;c<21;c++){
-    const inFinder = (r<8&&c<8)||(r<8&&c>12)||(r>12&&c<8);
-    if (inFinder) continue;
-    seed = (seed*1103515245+12345)%2147483648;
-    if (seed%100<46) ctx.fillRect(x+c*cell,y+r*cell,cell*.92,cell*.92);
+  ctx.fillStyle='#f7f2ff'; ctx.fillRect(x,y,size,size);
+  ctx.fillStyle='#0d0620';
+  for(let r=0;r<n;r++){
+    /* 每行hex对应36位(33数据+3填充)，需先补足36位再取前33位 */
+    const bits=parseInt(parts[r+1],16).toString(2).padStart(36,'0').slice(0,n);
+    for(let c=0;c<n;c++) if(bits[c]==='1') ctx.fillRect(x+q+c*cell,y+q+r*cell,cell+.4,cell+.4);
   }
   ctx.restore();
 }
