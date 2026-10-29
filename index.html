@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#14092e">
+<title>天赋潜能测试 | 测一测你的隐藏天赋</title>
+<!--
+  ══════════════════════════════════════════════════
+  TALENT DNA · 天赋潜能测试 H5
+  使用说明：
+  1. 部署：任意静态托管（服务器 / OSS / GitHub Pages 等），或本地直接打开
+  2. 海报中的二维码为占位图，请在 genPoster() 中替换为你的小程序码/商品链接二维码图片
+  3. 预览指定结果：在网址后加 ?demo=C_warm（12个原型 key 见 ARCH 表）
+     随机结果预览：?demo=1
+  4. 合规：本测试为娱乐向内容，免责声明勿删
+  ══════════════════════════════════════════════════
+-->
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; }
+  body {
+    font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;
+    background:#14092e; color:#f3edff; overflow-x:hidden;
+  }
+  /* ── 背景氛围 ── */
+  .bg { position:fixed; inset:0; z-index:0; background:
+    radial-gradient(120% 90% at 50% 0%, #33195f 0%, #22104a 42%, #120826 100%); }
+  .blob { position:fixed; border-radius:50%; filter:blur(90px); opacity:.45; z-index:0; animation:drift 14s ease-in-out infinite alternate; }
+  .blob.b1 { width:340px; height:340px; left:-120px; top:-80px; background:#6d3df0; }
+  .blob.b2 { width:300px; height:300px; right:-100px; top:22%; background:#b34df0; animation-delay:-4s; }
+  .blob.b3 { width:320px; height:320px; left:-90px; bottom:-60px; background:#2f6df0; animation-delay:-8s; }
+  .blob.b4 { width:220px; height:220px; right:-60px; bottom:12%; background:#e8b64c; opacity:.22; animation-delay:-6s; }
+  @keyframes drift { from{transform:translate(0,0) scale(1)} to{transform:translate(40px,-30px) scale(1.15)} }
+  .star { position:fixed; width:3px; height:3px; border-radius:50%; background:#fff; opacity:.55; z-index:0; animation:tw 3.2s ease-in-out infinite; }
+  @keyframes tw { 0%,100%{opacity:.15; transform:scale(.7)} 50%{opacity:.85; transform:scale(1.2)} }
+
+  /* ── 布局 ── */
+  #app { position:relative; z-index:2; max-width:480px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; }
+  .page { display:none; flex:1; padding:0 22px 40px; animation:fadeUp .5s ease both; }
+  .page.on { display:block; }
+  @keyframes fadeUp { from{opacity:0; transform:translateY(18px)} to{opacity:1; transform:none} }
+
+  /* ── 金色文字 ── */
+  .gold { background:linear-gradient(120deg,#f9ecb8 10%,#e8b64c 45%,#fff3cf 70%,#dfae3f 95%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+
+  /* ── 封面 ── */
+  #cover { text-align:center; padding-top:9vh; }
+  .brand-tag { display:inline-flex; align-items:center; gap:8px; font-size:12px; letter-spacing:3px; color:#d9c8ff;
+    border:1px solid rgba(217,200,255,.35); border-radius:999px; padding:7px 16px; }
+  .brand-tag i { width:6px; height:6px; border-radius:50%; background:#e8b64c; box-shadow:0 0 8px #e8b64c; }
+  .cover-orb { font-size:74px; margin:34px 0 6px; display:inline-block; animation:float 4s ease-in-out infinite; filter:drop-shadow(0 8px 30px rgba(232,182,76,.35)); }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  h1.title { font-size:38px; line-height:1.3; font-weight:800; letter-spacing:2px; margin-top:10px; }
+  .subtitle { margin-top:14px; font-size:14.5px; color:#cbbcf0; line-height:1.9; }
+  .meta-chips { display:flex; justify-content:center; gap:10px; margin-top:20px; flex-wrap:wrap; }
+  .chip { font-size:12px; color:#efe6ff; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.13); padding:6px 13px; border-radius:999px; }
+  .cta-btn { margin-top:38px; width:100%; padding:17px; border:none; border-radius:999px; font-size:17px; font-weight:800; letter-spacing:4px; color:#3a2504;
+    background:linear-gradient(120deg,#f9e7a0,#e8b64c 55%,#f7d87c); box-shadow:0 10px 34px rgba(232,182,76,.4); cursor:pointer; transition:transform .15s; }
+  .cta-btn:active { transform:scale(.97); }
+  .cover-note { margin-top:16px; font-size:12px; color:#9d8cc9; }
+  .cover-foot { margin-top:44px; font-size:10.5px; color:#7f6fae; line-height:1.9; }
+
+  /* ── 答题页 ── */
+  #quiz { padding-top:26px; }
+  .q-top { display:flex; align-items:center; justify-content:space-between; font-size:12.5px; color:#b7a6e6; margin-bottom:10px; }
+  .q-top b { color:#f2d98a; font-size:14px; }
+  .track { height:5px; border-radius:99px; background:rgba(255,255,255,.09); overflow:hidden; }
+  .track .fill { height:100%; width:0; border-radius:99px; background:linear-gradient(90deg,#e8b64c,#f7e08b); transition:width .35s ease; }
+  .q-card { margin-top:26px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); backdrop-filter:blur(14px);
+    border-radius:22px; padding:26px 22px; }
+  .q-tag { font-size:11px; letter-spacing:2px; color:#cdbbf7; }
+  .q-text { margin-top:10px; font-size:19px; font-weight:700; line-height:1.65; }
+  .opts { margin-top:22px; display:flex; flex-direction:column; gap:12px; }
+  .opt { display:flex; align-items:center; gap:13px; text-align:left; width:100%; padding:15px 16px; border-radius:18px; cursor:pointer;
+    background:rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.10); color:#efe9ff; font-size:15px; line-height:1.55;
+    transition:all .18s; font-family:inherit; }
+  .opt:active { transform:scale(.98); }
+  .opt .key { flex:none; width:32px; height:32px; border-radius:50%; display:grid; place-items:center; font-weight:800; font-size:14px;
+    background:rgba(255,255,255,.09); color:#ecd9a0; transition:all .18s; }
+  .opt.picked { border-color:rgba(232,182,76,.9); background:rgba(232,182,76,.14); box-shadow:0 0 26px rgba(232,182,76,.25); }
+  .opt.picked .key { background:linear-gradient(120deg,#f9e7a0,#e8b64c); color:#3a2504; }
+  .q-nav { display:flex; justify-content:space-between; align-items:center; margin-top:20px; }
+  .back-btn { background:none; border:none; color:#a593d6; font-size:13.5px; cursor:pointer; padding:8px 4px; font-family:inherit; }
+  .back-btn[disabled] { opacity:.3; }
+  .q-hint { font-size:12px; color:#8d7cbd; }
+
+  /* ── 解析页 ── */
+  #analyzing { display:none; flex:none; align-items:center; justify-content:center; text-align:center; min-height:78vh; flex-direction:column; }
+  #analyzing.on { display:flex; }
+  .orbit { position:relative; width:130px; height:130px; }
+  .orbit .core { position:absolute; inset:38px; border-radius:50%; background:linear-gradient(120deg,#f9e7a0,#e8b64c); box-shadow:0 0 44px rgba(232,182,76,.55); animation:pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{transform:scale(.92)} 50%{transform:scale(1.06)} }
+  .orbit .ring { position:absolute; inset:0; border-radius:50%; border:1.5px dashed rgba(232,182,76,.5); animation:spin 5s linear infinite; }
+  .orbit .ring i { position:absolute; top:-6px; left:50%; width:10px; height:10px; margin-left:-5px; border-radius:50%; background:#f7e08b; }
+  .orbit .ring.r2 { inset:16px; animation-duration:3.2s; animation-direction:reverse; border-color:rgba(179,77,240,.5); }
+  .orbit .ring.r2 i { background:#c98df5; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .ana-txt { margin-top:30px; font-size:16px; color:#e9defc; letter-spacing:1px; min-height:24px; transition:opacity .3s; }
+  .ana-sub { margin-top:10px; font-size:12px; color:#9583c7; }
+
+  /* ── 结果页 ── */
+  #result { padding-top:30px; }
+  .hero { text-align:center; padding:34px 22px 30px; border-radius:26px; position:relative; overflow:hidden;
+    background:linear-gradient(160deg,rgba(255,255,255,.10),rgba(255,255,255,.04));
+    border:1px solid rgba(232,182,76,.35); box-shadow:0 14px 50px rgba(0,0,0,.35); }
+  .hero::before { content:""; position:absolute; width:220px; height:220px; border-radius:50%; top:-110px; right:-70px;
+    background:radial-gradient(circle,rgba(232,182,76,.28),transparent 70%); }
+  .hero-tag { font-size:11px; letter-spacing:4px; color:#d9c8ff; }
+  .hero-emoji { font-size:64px; display:inline-block; margin:14px 0 4px; animation:float 4s ease-in-out infinite; }
+  .hero-name { font-size:36px; font-weight:900; letter-spacing:3px; }
+  .hero-en { margin-top:6px; font-size:12px; letter-spacing:5px; color:#c4b2ee; text-transform:uppercase; }
+  .hero-slogan { margin-top:14px; font-size:15px; color:#f0e8ff; line-height:1.8; }
+  .rare-pill { display:inline-flex; align-items:center; gap:7px; margin-top:18px; padding:8px 18px; border-radius:999px; font-size:12.5px; color:#f7e08b;
+    border:1px solid rgba(232,182,76,.55); background:rgba(232,182,76,.10); }
+  .rare-pill b { font-size:14px; }
+  .sec { margin-top:22px; background:rgba(255,255,255,.055); border:1px solid rgba(255,255,255,.11); backdrop-filter:blur(12px); border-radius:22px; padding:22px; }
+  .sec-h { display:flex; align-items:center; gap:9px; font-size:15px; font-weight:800; letter-spacing:1px; }
+  .sec-h::before { content:""; width:4px; height:16px; border-radius:2px; background:linear-gradient(#f7e08b,#e8b64c); }
+  .desc { margin-top:12px; font-size:14.5px; line-height:2; color:#e6dcfa; text-align:justify; }
+  .formula { margin-top:14px; text-align:center; font-size:13px; color:#cdbbf7; background:rgba(179,77,240,.10); border:1px dashed rgba(179,77,240,.4); border-radius:14px; padding:11px; }
+  .formula b { color:#f2d98a; }
+  /* 雷达图 */
+  .radar-wrap { display:flex; justify-content:center; margin-top:8px; }
+  .radar-poly { transform-origin:center; animation:radarIn 1s .2s ease both; }
+  @keyframes radarIn { from{opacity:0; transform:scale(.4)} to{opacity:1; transform:scale(1)} }
+  /* 六维条 */
+  .bars { margin-top:16px; display:flex; flex-direction:column; gap:11px; }
+  .bar-row { display:flex; align-items:center; gap:10px; font-size:12.5px; }
+  .bar-row .bl { flex:none; width:64px; color:#d8cdf3; }
+  .bar-row .bl small { display:block; font-size:10px; color:#8d7cbd; transform:scale(.92); transform-origin:left; }
+  .bar-track { flex:1; display:block; height:9px; border-radius:99px; background:rgba(255,255,255,.09); overflow:hidden; }
+  .bar-fill { display:block; height:100%; width:0; border-radius:99px; transition:width 1s .3s cubic-bezier(.2,.8,.2,1); }
+  .bar-row .bv { flex:none; width:38px; text-align:right; font-weight:700; font-size:12.5px; }
+  /* 超能力 */
+  .powers { margin-top:14px; display:flex; flex-direction:column; gap:10px; }
+  .power { display:flex; gap:11px; font-size:14px; line-height:1.7; color:#f0e9ff; }
+  .power i { flex:none; font-style:normal; margin-top:1px; }
+  .power b { color:#f2d98a; }
+  /* 领域标签 */
+  .tags { margin-top:14px; display:flex; flex-wrap:wrap; gap:9px; }
+  .tag { font-size:12.5px; padding:7px 14px; border-radius:999px; color:#efe6ff; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.14); }
+  /* 行动建议 */
+  .tips { margin-top:14px; display:flex; flex-direction:column; gap:12px; }
+  .tip { display:flex; gap:12px; background:rgba(255,255,255,.045); border:1px solid rgba(255,255,255,.09); border-radius:15px; padding:13px 14px; font-size:13.5px; line-height:1.75; color:#e9e0fb; }
+  .tip i { flex:none; width:22px; height:22px; margin-top:2px; border-radius:50%; display:grid; place-items:center; font-style:normal; font-size:11px; font-weight:800;
+    background:linear-gradient(120deg,#f9e7a0,#e8b64c); color:#3a2504; }
+  .res-btns { margin-top:26px; display:flex; flex-direction:column; gap:12px; }
+  .res-foot { margin-top:26px; text-align:center; font-size:10.5px; color:#7f6fae; line-height:1.9; }
+  .brand-line { margin-top:8px; letter-spacing:3px; font-size:11px; color:#a593d6; }
+
+  /* ── 海报弹层 ── */
+  .poster-mask { position:fixed; inset:0; z-index:50; display:none; align-items:center; justify-content:center; flex-direction:column;
+    background:rgba(10,5,24,.88); backdrop-filter:blur(10px); padding:26px; }
+  .poster-mask.on { display:flex; }
+  .poster-mask img { max-width:82%; max-height:72vh; border-radius:14px; box-shadow:0 20px 60px rgba(0,0,0,.6); }
+  .poster-tip { margin-top:16px; font-size:14px; color:#f2e9ff; letter-spacing:1px; }
+  .poster-close { margin-top:14px; background:none; border:1px solid rgba(255,255,255,.3); color:#e9defc; border-radius:999px; padding:9px 30px; font-size:13px; cursor:pointer; }
+  .toast { position:fixed; left:50%; bottom:8%; transform:translateX(-50%); background:rgba(20,10,40,.92); border:1px solid rgba(232,182,76,.5);
+    color:#f7e08b; font-size:13px; padding:11px 22px; border-radius:999px; z-index:60; opacity:0; pointer-events:none; transition:opacity .3s; }
+  .toast.on { opacity:1; }
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div><div class="blob b4"></div>
+
+<div id="app">
+  <!-- 封面 -->
+  <section class="page on" id="cover">
+    <div class="brand-tag"><i></i>TALENT DNA · 天赋基因实验室</div>
+    <div class="cover-orb">🔮</div>
+    <h1 class="title"><span class="gold">测一测你的隐藏天赋</span></h1>
+    <p class="subtitle">50 道灵魂小题 · 8 分钟<br>解锁你体内沉睡的「天赋原型」</p>
+    <div class="meta-chips">
+      <span class="chip">📊 6维天赋图谱</span>
+      <span class="chip">🧬 12种天赋原型</span>
+      <span class="chip">🎴 专属天赋海报</span>
+    </div>
+    <button class="cta-btn" onclick="startQuiz()">开始测试 →</button>
+    <p class="cover-note">已有众多同频的小伙伴悄悄解锁了自己的天赋</p>
+    <p class="cover-foot">本测试为娱乐向内容，非专业心理测评，结果仅供参考<br>TALENT DNA · TAP TO REVEAL YOUR GIFT</p>
+  </section>
+
+  <!-- 答题 -->
+  <section class="page" id="quiz">
+    <div class="q-top"><span>第 <b id="qNum">1</b> / 50 题</span><span id="qPct">2%</span></div>
+    <div class="track"><div class="fill" id="qFill"></div></div>
+    <div class="q-card">
+      <div class="q-tag">TALENT QUESTION</div>
+      <div class="q-text" id="qText"></div>
+      <div class="opts" id="qOpts"></div>
+      <div class="q-nav">
+        <button class="back-btn" id="backBtn" onclick="goBack()">← 上一题</button>
+        <span class="q-hint" id="qHint">凭第一直觉选，最准</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 解析 -->
+  <section class="page" id="analyzing">
+    <div class="orbit">
+      <div class="ring"><i></i></div>
+      <div class="ring r2"><i></i></div>
+      <div class="core"></div>
+    </div>
+    <div class="ana-txt" id="anaTxt">正在解析你的天赋基因…</div>
+    <div class="ana-sub">比对 12 种原型 · 生成专属图谱</div>
+  </section>
+
+  <!-- 结果 -->
+  <section class="page" id="result">
+    <div class="hero" id="hero"></div>
+    <div class="sec">
+      <div class="sec-h">你的天赋解读</div>
+      <p class="desc" id="rDesc"></p>
+      <div class="formula" id="rFormula"></div>
+    </div>
+    <div class="sec">
+      <div class="sec-h">六维天赋图谱</div>
+      <div class="radar-wrap" id="radar"></div>
+      <div class="bars" id="bars"></div>
+    </div>
+    <div class="sec">
+      <div class="sec-h">你的三大天赋超能力</div>
+      <div class="powers" id="powers"></div>
+    </div>
+    <div class="sec">
+      <div class="sec-h">天赋最适合的赛道</div>
+      <div class="tags" id="fields"></div>
+    </div>
+    <div class="sec">
+      <div class="sec-h">激活天赋 · 3 个行动建议</div>
+      <div class="tips" id="tips"></div>
+    </div>
+    <div class="res-btns">
+      <button class="cta-btn" onclick="genPoster()">🎴 生成我的天赋海报</button>
+      <button class="cta-btn" style="background:rgba(255,255,255,.08); color:#d9c8ff; box-shadow:none; border:1px solid rgba(255,255,255,.16)" onclick="location.reload()">再测一次</button>
+    </div>
+    <div class="res-foot">
+      本报告为娱乐向测试结果，非专业心理测评，仅供参考<br>
+      <span class="brand-line">TALENT DNA · 天赋基因实验室</span>
+    </div>
+  </section>
+</div>
+
+<!-- 海报弹层 -->
+<div class="poster-mask" id="posterMask">
+  <img id="posterImg" alt="天赋海报">
+  <div class="poster-tip">长按保存海报，晒出你的天赋原型 ✨</div>
+  <button class="poster-close" onclick="document.getElementById('posterMask').classList.remove('on')">关 闭</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════ 维度定义 ══════════ */
+const DIMS = {
+  C:{ name:'创造力', sub:'灵感与想象', color:'#ff9ecd' },
+  E:{ name:'共情力', sub:'情绪与连接', color:'#8fd3ff' },
+  L:{ name:'逻辑力', sub:'思维与体系', color:'#b39dff' },
+  A:{ name:'行动力', sub:'执行与突破', color:'#ffb36b' },
+  I:{ name:'影响力', sub:'表达与感染', color:'#ffe27a' },
+  O:{ name:'观察力', sub:'细节与洞察', color:'#8affd4' }
+};
+
+/* ══════════ 50 道题（每题4选项，各对应1个维度） ══════════ */
+const QUESTIONS = [
+ {q:'周五晚上终于解放了，你最想做的一件事是？', o:[['把白天冒出的那个点子动手做出来','C'],['约上最聊得来的朋友吃顿好的','E'],['窝在家里看一部高分纪录片','L'],['把下周计划列清楚，周六直接开干','A']]},
+ {q:'朋友发来一句「在吗？有点事问你」，你的第一反应是？', o:[['脑补了八种可能，有点好奇','C'],['是不是遇到难处了，有点担心','E'],['先在心里排一遍事情的轻重缓急','L'],['能帮上忙的话，还挺来劲','I']]},
+ {q:'你手机相册里最多的一类照片是？', o:[['自己的手作、摆盘或随手拍的构图','C'],['和朋友们的合照','E'],['截图：笔记、攻略、资料','L'],['天空、街角、光影这类细节','O']]},
+ {q:'玩剧本杀或密室逃脱，你通常是那个……', o:[['提出脑洞推理、打开新思路的人','C'],['注意谁不舒服、控场暖场的人','E'],['不玩出个结果不罢休的人','A'],['复盘时讲得头头是道的人','I']]},
+ {q:'如果立刻获得一种超能力，你选？', o:[['把想象里的东西变成实物','C'],['听懂身边人没说出口的心事','E'],['精力无限，永远不累','A'],['一眼记住所有看过的细节','O']]},
+ {q:'你的收藏夹里，占比最高的是？', o:[['灵感碎片：点子、画面、金句','C'],['让人心里一暖的帖子和评论','E'],['博主的穿搭或生活方式，想跟着学','I'],['冷门但绝妙的小众店铺、片单','O']]},
+ {q:'接到一个全新的任务，你的本能反应是？', o:[['先想想「有没有更好玩的解法」','C'],['先拆目标、定优先级','L'],['先干起来，边做边调','A'],['先拉齐人、把愿景讲清楚','I']]},
+ {q:'群里大家争论不下时，你往往会……', o:[['丢出一个没人想过的角度','C'],['把争论点列清楚，逐条捋','L'],['直接给个结论：就这么定','A'],['翻聊天记录找出关键依据','O']]},
+ {q:'你最受不了的「难受」是哪种？', o:[['生活一成不变，毫无新意','C'],['逻辑混乱，怎么说都说不清','L'],['说话没人听、表达被无视','I'],['细节被糊弄，「差不多得了」','O']]},
+ {q:'半夜睡不着，你脑子里通常在……', o:[['编故事、想画面、构思创意','C'],['盘点明天要做的事','A'],['打磨一个还没讲给别人的点子','I'],['回放白天看到的某个细节','O']]},
+ {q:'朋友向你倒苦水，你的第一反应是？', o:[['「这确实太难了」——先接住情绪','E'],['帮他分析问题到底出在哪','L'],['「别想了，明天先去做这三件事」','A'],['讲个自己的糗事，先把他逗笑','I']]},
+ {q:'你更愿意收到哪种礼物？', o:[['手写的信或亲手做的东西','E'],['正好解决你痛点的实用好物','L'],['你惦记很久、终于下手的它','A'],['你随口提过、却被细心记住的东西','O']]},
+ {q:'你记东西的方式更像？', o:[['记住当时的心情和氛围','E'],['记结构和逻辑链','L'],['记梗和金句，转述给朋友','I'],['记数字、名字、位置等细节','O']]},
+ {q:'在陌生的聚会上，你会？', o:[['很快注意到那个落单的人','E'],['主动破冰，把气氛带起来','A'],['和最有意思的人聊到停不下来','I'],['记住在场每个人的名字和特点','O']]},
+ {q:'你的朋友圈 / 动态画风是？', o:[['很少发，发必是干货总结','L'],['定了目标就官宣，逼自己做到','A'],['分享观点，总能带起讨论','I'],['偶尔发，但排版和选图极其讲究','O']]},
+ {q:'遇到难题卡住时，你的解法是？', o:[['先睡一觉，让潜意识加班','C'],['找人聊聊，说着说着就通了','E'],['拆成小问题，逐个击破','L'],['换个环境动起来，再战','A']]},
+ {q:'你觉得自己最像哪种动物？', o:[['变色龙——总能想出新玩法','C'],['海豚——温暖又合群','E'],['猫头鹰——安静地把事想透','L'],['孔雀——天生吸引目光','I']]},
+ {q:'看到一条热搜，你倾向于？', o:[['想到一个没人提过的角度','C'],['关心事件里的人还好吗','E'],['去查信源、梳理时间线','L'],['注意到细节：时间地点对不上','O']]},
+ {q:'你的学习方式是？', o:[['凭兴趣乱翻，再连点成线','C'],['找搭子一起学，更有动力','E'],['直接上手，做中学','A'],['学完就讲给别人听','I']]},
+ {q:'你整理房间的风格是？', o:[['灵感来了大动工，平时随性','C'],['重点收拾别人会看到的地方','E'],['说整理就立刻动手，绝不拖','A'],['每件物品都有固定归属','O']]},
+ {q:'你更容易被哪种内容吸引？', o:[['脑洞、创意混剪、艺术','C'],['人间观察、真实故事','E'],['观点犀利的评论视频','I'],['沉浸式细节：手工、整理、旧物','O']]},
+ {q:'如果钱不是问题，你最想学？', o:[['一门艺术：画画、音乐或写作','C'],['编程、数据、一门硬技能','L'],['极限运动或户外生存','A'],['演讲、主持、公开表达','I']]},
+ {q:'对待「计划」，你的态度是？', o:[['留个大方向就好，计划赶不上变化','C'],['没有计划就没有安全感','L'],['计划就是军令状，必须完成','A'],['精确到时间点才安心','O']]},
+ {q:'别人夸你最多的一句话是？', o:[['「你怎么想到的？」','C'],['「你脑子怎么这么清楚」','L'],['「听你说话真带劲」','I'],['「你的眼睛也太尖了」','O']]},
+ {q:'你会为什么事熬夜？', o:[['一个突然爆发的创作欲','C'],['一个明天就要交付的 deadline','A'],['和朋友聊到天亮','I'],['一部细节封神的剧或小说','O']]},
+ {q:'团队合作里，你的隐藏角色是？', o:[['团宠 / 气氛担当','E'],['复盘侠——问题总逃不过你','L'],['冲锋队长——有事先上','A'],['隐形主心骨——大家都听你的','I']]},
+ {q:'朋友要做重大决定来问你，你会？', o:[['先问「你心里真正想要什么」','E'],['帮他列一张利弊清单','L'],['「要我就选这个，就这么办」','A'],['记得他三年前类似的选择和结局','O']]},
+ {q:'你的表达风格更像？', o:[['情绪到位，让人如沐春风','E'],['条理清晰，句句在点上','L'],['金句频出，自带节奏感','I'],['细节丰富，画面感极强','O']]},
+ {q:'你的能量更多来自？', o:[['和对的人深度连接','E'],['目标达成的那一刻','A'],['站在人群中被听见','I'],['独处时把生活理得井井有条','O']]},
+ {q:'对于未来的职业，你更在意？', o:[['专业上能不能持续精进','L'],['回报是否和付出成正比','A'],['有没有舞台和话语权','I'],['能不能沉淀成一门手艺','O']]},
+ {q:'理想的工作节奏是？', o:[['弹性自由，灵感驱动','C'],['和人有真实而温暖的连接','E'],['深度专注，逻辑闭环','L'],['目标明确，多劳多得','A']]},
+ {q:'听到一个好观点，你的反应是？', o:[['立刻联想到另一个领域','C'],['想分享给正需要它的人','E'],['想找个反例检验一下','L'],['想改编成自己的表达讲出去','I']]},
+ {q:'你更擅长记住什么？', o:[['脑洞和梗','C'],['别人的喜好和忌口','E'],['事件的前因后果','L'],['路线和方位，从不迷路','O']]},
+ {q:'面对一堆待办事项，你会？', o:[['先做最有意思的那个','C'],['先处理牵扯到别人的','E'],['从最容易的开始滚雪球','A'],['先开个短会拉齐方向','I']]},
+ {q:'你对「仪式感」的看法是？', o:[['它是生活的创意出口','C'],['它是爱与被爱的证据','E'],['重要的日子必须有排面','A'],['特定日子的固定流程不能少','O']]},
+ {q:'你花钱最舍得的场景是？', o:[['为灵感和体验买单','C'],['为朋友花钱最不含糊','E'],['请客组织活动时最大方','I'],['大额支出前必做足攻略','O']]},
+ {q:'你更愿意参加哪种活动？', o:[['小众展览、创意工作坊','C'],['行业沙龙，听大神拆解','L'],['徒步、比赛，用汗水证明自己','A'],['联谊、年会，人越多越嗨','I']]},
+ {q:'朋友眼中的你，更接近哪个词？', o:[['灵光乍现','C'],['清醒理性','L'],['雷厉风行','A'],['心细如发','O']]},
+ {q:'你对「天赋」的理解更接近？', o:[['每个人心里没被点亮的灯','C'],['可以刻意练习出来的技能','L'],['被看见才能被点燃的火种','I'],['藏在细节里的与众不同','O']]},
+ {q:'玩「你画我猜」，你最容易猜中？', o:[['抽象创意题，脑洞同频','C'],['谁都不认识的题，靠胆量抢答','A'],['比划的人想表达什么，看一眼就懂','I'],['冷门的生活细节题','O']]},
+ {q:'别人向你求助，你最常给出的是？', o:[['情绪价值和陪伴','E'],['一套完整的解决方案','L'],['顺手直接帮他做了','A'],['一次公开的力挺和背书','I']]},
+ {q:'在陌生城市旅行，你的风格是？', o:[['找本地人聊，听他们的故事','E'],['行程精确到时间点','L'],['特种兵式打卡，效率拉满','A'],['逛菜市场和老街，看细节','O']]},
+ {q:'你的时间感更接近？', o:[['为在乎的人，永远有时间','E'],['时间是被精确切块的','L'],['时间就是影响力和机会','I'],['每个重要日子和纪念日都记得','O']]},
+ {q:'如果拍一条自己的短视频，会是？', o:[['记录治愈的人间日常','E'],['挑战类：30 天做成一件事','A'],['观点输出或情景段子','I'],['沉浸式 vlog，一镜到底','O']]},
+ {q:'如果给一年后的自己寄一句话，你会说？', o:[['「希望你比现在更清醒」','L'],['「希望你想的都做到了」','A'],['「希望更多人听见你的声音」','I'],['「希望你沉淀出了自己的作品」','O']]},
+ {q:'你熬夜做完一件事，最可能是？', o:[['一个突然上头的创作','C'],['一个非解开不可的逻辑难题','L'],['一场必须赢的比赛或竞标','A'],['一次改到第八版的演讲稿','I']]},
+ {q:'你的手机桌面是？', o:[['壁纸和 APP 都透着生活气息','E'],['按功能整整齐齐分组','L'],['首屏只有最常用的效率 APP','A'],['连相册都按时间地点分好类','O']]},
+ {q:'聚会上有人讲了个冷场的话题，你会？', o:[['抛出一个更离谱的梗救场','C'],['接住他的情绪，自然圆场','E'],['直接把话题转到正事上','L'],['接过话头，把它变成段子','I']]},
+ {q:'如果立刻要上线一个小店，你会先？', o:[['把品牌名字和视觉想到极致','C'],['先跑通第一单再说','A'],['先发朋友圈预热造势','I'],['研究同类店的所有细节','O']]},
+ {q:'你相信自己的天赋是？', o:[['让人卸下防备、信任你的能力','E'],['把复杂的事想明白的能力','L'],['说到做到的执行力','A'],['一开口就让人记住的能力','I']]}
+];
+
+/* ══════════ 12 个天赋原型 ══════════ */
+const ARCH = {
+ C_warm:{ emoji:'✨', name:'灵感造梦师', en:'THE DREAM MAKER', rare:9.2,
+  slogan:'你的世界没有「不可能」，只有「还没想到」。',
+  desc:'你的脑子里永远住着下一个点子。你擅长把平凡的日常重新排列组合，变成让人眼前一亮的东西。别人看到的是生活，你看到的是素材。对你来说，创造不是技能，而是呼吸。',
+  powers:[['无限脑洞','点子取之不尽，随口一说就是方案'],['跨界联想','把不相关的事连成惊喜'],['审美直觉','一眼认出「美」的形状']],
+  fields:['内容创作','品牌策划','设计美学','编剧文案','独立工作室'],
+  tips:['每天留 15 分钟「白日梦时间」，灵感需要留白','把点子当天记下来——你的灵感保质期只有 24 小时','找一个执行力强的搭档，你会飞得更高']},
+ C_sharp:{ emoji:'🔥', name:'破界造物者', en:'THE EDGE CREATOR', rare:7.8,
+  slogan:'规则存在的意义，就是被你重新书写。',
+  desc:'你不满足于「本来就这样」。你的创造力自带锋芒：别人绕路的地方，你直接开新路径。最难得的是，你的点子不是空想——你有把它们做出来的狠劲和章法。',
+  powers:[['打破常规','看见别人看不见的路径'],['创意+落地','你的点子自带可实现性'],['逆向思维','越是没有路的地方越兴奋']],
+  fields:['产品创新','创业','广告创意','跨界主理人','科技艺术'],
+  tips:['把疯狂想法做成最小可行版本，先做出来','定期接触完全陌生的领域，跨界是你的弹药库','别怕被说不靠谱——靠谱的事最初都这样']},
+ E_warm:{ emoji:'🫧', name:'心灵磁石', en:'THE SOUL MAGNET', rare:11.3,
+  slogan:'和你待在一起，人会不自觉放松下来。',
+  desc:'你有一台天然的情绪雷达，总能第一时间感知到别人的喜怒哀乐。你不评判、不说教，只是安静地接住对方的情绪。这种「被看见」的感觉，是这个时代最稀缺的礼物。',
+  powers:[['情绪雷达','精准感知他人状态'],['无评判倾听','让人愿意说真心话'],['关系修复力','总能让气氛回暖']],
+  fields:['心理咨询','用户研究','教育陪伴','团队关怀','主理人社交型生意'],
+  tips:['共情是你的天赋，但记得先照顾自己的情绪','把「会倾听」变成专业能力，你的价值被低估了','远离长期消耗你的关系，你的能量很珍贵']},
+ E_sharp:{ emoji:'🌗', name:'清醒共情者', en:'THE CLEAR EMPATH', rare:9.6,
+  slogan:'温柔是你的选择，清醒是你的底色。',
+  desc:'你拥有一个稀有组合：既读得懂人心，又看得清局势。你给人建议时既暖又准——先接住情绪，再一刀切中要害。朋友们都说，找你聊完天，心里又暖又亮堂。',
+  powers:[['共情+分析','读懂人心也看得清局势'],['直击要害','一眼看穿情绪背后的真实需求'],['温柔刀法','建议又准又不伤人']],
+  fields:['情感咨询','教练辅导','调解谈判','用户洞察','深度访谈'],
+  tips:['你的「温柔刀法」很珍贵，别自我怀疑','重要关系里练习「先共情、后建议」的顺序','你适合做那个「既懂人又懂局」的角色']},
+ L_warm:{ emoji:'🍵', name:'温柔策略家', en:'THE GENTLE STRATEGIST', rare:8.4,
+  slogan:'你谋定而后动，温柔而有主见。',
+  desc:'你的温柔里藏着一套严密的算法。别人还在纠结情绪，你已经把局面拆成了三步走。你不争不抢，但每次开口都让人心里一稳——因为你说的，往往就是最优解。',
+  powers:[['复杂拆解','乱局里快速找到最优解'],['翻译能力','把大道理讲成人话'],['稳定判断','朋友们的「人生参谋」']],
+  fields:['咨询顾问','产品经理','教育规划','投资研究','知识博主'],
+  tips:['别急着给答案，你的分析已经足够好','把方法论写成内容，你会收获大量信任','允许一些「没意义」的浪漫，人生不全是解题']},
+ L_sharp:{ emoji:'🧩', name:'精密解码者', en:'THE DECODER', rare:7.1,
+  slogan:'世界是一台机器，而你有说明书。',
+  desc:'混乱的信息到你手里，三分钟变成清晰的结构。你的大脑天生适合处理复杂系统：找规律、搭框架、抠逻辑。别人觉得烧脑的东西，正是你感到舒服的领域。',
+  powers:[['结构化思维','混乱秒变清晰'],['规律洞察','从噪声中提炼信号'],['逻辑权威','用推理让人心服口服']],
+  fields:['数据分析','研发工程','金融研究','法务合规','硬核科普'],
+  tips:['你的严谨是稀缺品，但给直觉留个位置','定期输出，把思考体系变成影响力','学会「够用就好」，完美是迭代出来的']},
+ A_warm:{ emoji:'🌅', name:'追光燃动者', en:'THE IGNITER', rare:9.8,
+  slogan:'你的热情，会点燃整个房间。',
+  desc:'你是人群里的「永动机」：想到就干，干了就成。更难得的是，你的能量会传染——本来躺平的队伍，有你参与就自动支棱起来。你不是没有低谷，你只是把跌倒当充电。',
+  powers:[['超强执行','想到就冲，说到做到'],['能量感染','用热情带动身边人'],['逆商爆表','越挫越勇的韧性']],
+  fields:['品牌营销','社群运营','活动策划','直播电商','体育户外'],
+  tips:['把热情用在有复利的事上，而不只是救火','找到你的「为什么」，你会所向披靡','记得留白——休息也是战略']},
+ A_sharp:{ emoji:'⚔️', name:'无畏开拓者', en:'THE PIONEER', rare:6.5,
+  slogan:'别人在讨论风险，你已经在路上。',
+  desc:'你天生对「新」和「难」过敏——越是没人走过的路，你越想踩一脚。你的字典里没有内耗，只有下一场仗。这种用结果说话的气场，让人下意识想跟着你走。',
+  powers:[['目标感','认准了就不回头'],['决断力','关键时刻敢拍板'],['结果导向','从不被情绪拖住']],
+  fields:['创业','销售开拓','项目管理','新兴行业','竞赛型职业'],
+  tips:['你的速度是优势，但停下来校准方向更可怕','找一个擅长深思的搭档做你的「军师」','把大目标切成可庆祝的小胜利']},
+ I_warm:{ emoji:'🎤', name:'舞台发光体', en:'THE SPOTLIGHT', rare:8.9,
+  slogan:'你一开口，全世界都安静了。',
+  desc:'你天生自带聚光灯：表达欲、感染力、让人想听下去的魔力。你的厉害之处在于「共情式表达」——不是炫技，而是每句话都说到人心坎里，让人听完只想为你鼓掌。',
+  powers:[['天生表达','一开口就有听众'],['化繁为简','复杂的事讲得让人想听'],['共情表达','说到人心坎里']],
+  fields:['主播主持','教育培训','内容IP','公关传播','销售'],
+  tips:['你的声音值得更大的舞台，去争取','建立个人 IP，把影响力变成资产','收敛不是熄灭，选择对的场合发光']},
+ I_sharp:{ emoji:'🦅', name:'磁场领袖', en:'THE COMMANDER', rare:5.7,
+  slogan:'你不追热点，你制造风向。',
+  desc:'你的影响力里带着掌控感：开口能聚人，拍板能定事。你擅长把一个愿景讲成所有人的共同目标，让团队自发地朝一个方向冲。领袖气质不是学来的，是你长出来的。',
+  powers:[['号召力','开口能聚人，拍板能定事'],['愿景力','把目标讲成共同的火'],['掌控感','关键时刻稳住全场']],
+  fields:['团队管理','商业操盘','公关谈判','创始人','组织型角色'],
+  tips:['权力是责任，你的果断会吸引追随者','学会授权——领袖不是超人','警惕身边只有回声，留一个敢说真话的人']},
+ O_warm:{ emoji:'📮', name:'时光收藏家', en:'THE COLLECTOR', rare:9.4,
+  slogan:'你收集细节，也收集人心。',
+  desc:'你记得朋友三年前随口说过的忌口，记得某个黄昏的光线角度。这些「没用的小事」在你这里都是珍宝。你用具体的小事打动人——被你记住，本身就是一种温柔。',
+  powers:[['细节记忆','被忽略的你全都记得'],['温柔具体','用小事打动人心'],['长情可靠','你的记忆里全是珍宝']],
+  fields:['纪实内容','手工艺','档案策展','陪伴型服务','生活方式博主'],
+  tips:['你的「记得」是最深情的超能力','把收藏的细节变成作品，会很动人','少即是多，为值得的人和事按下快门']},
+ O_sharp:{ emoji:'🔍', name:'细节侦探', en:'THE DETECTIVE', rare:6.3,
+  slogan:'真相藏在细节里，而你是解码的人。',
+  desc:'所有人看到的是「差不多」，你看到的是「差一点」。你的观察力配上钻研劲，让你能从蛛丝马迹还原整个全局。凡是需要「较真」的领域，你就是不可替代的那个人。',
+  powers:[['明察秋毫','差一点也逃不过你'],['深度专注','考证和钻研的耐力'],['全局还原','用细节拼出真相']],
+  fields:['质控风控','数据稽核','编辑审校','尽调调查','高精度手作'],
+  tips:['把你的观察方法系统化，成为方法论','别让完美主义拖住交付，80分先发布','找到值得深挖的领域，成为不可替代的人']}
+};
+
+/* ══════════ 状态 ══════════ */
+let idx = 0;
+const answers = [];
+
+/* 星星背景 */
+(function(){
+  for (let i=0;i<26;i++){
+    const s = document.createElement('div'); s.className='star';
+    s.style.left = Math.random()*100+'vw'; s.style.top = Math.random()*100+'vh';
+    s.style.animationDelay = (Math.random()*3)+'s';
+    const sc = .5+Math.random(); s.style.transform = `scale(${sc})`;
+    document.body.appendChild(s);
+  }
+})();
+
+function show(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  window.scrollTo(0,0);
+}
+
+/* ══════════ 答题流 ══════════ */
+function startQuiz(){ idx=0; answers.length=0; renderQ(); show('quiz'); }
+
+function renderQ(){
+  const item = QUESTIONS[idx];
+  document.getElementById('qNum').textContent = idx+1;
+  const pct = Math.round((idx)/QUESTIONS.length*100);
+  document.getElementById('qPct').textContent = pct+'%';
+  document.getElementById('qFill').style.width = ((idx)/QUESTIONS.length*100)+'%';
+  document.getElementById('qText').textContent = item.q;
+  const box = document.getElementById('qOpts'); box.innerHTML='';
+  const keys = ['A','B','C','D'];
+  item.o.forEach((opt,i)=>{
+    const b = document.createElement('button'); b.className='opt';
+    b.innerHTML = `<span class="key">${keys[i]}</span><span>${opt[0]}</span>`;
+    b.onclick = ()=>pick(i,b);
+    box.appendChild(b);
+  });
+  const bk = document.getElementById('backBtn');
+  bk.disabled = idx===0;
+  document.getElementById('qHint').textContent = idx===QUESTIONS.length-1 ? '最后一题，冲！' : '凭第一直觉选，最准';
+}
+
+function pick(i, btn){
+  document.querySelectorAll('.opt').forEach(o=>o.classList.remove('picked'));
+  btn.classList.add('picked');
+  answers[idx] = QUESTIONS[idx].o[i][1];
+  setTimeout(()=>{
+    if (idx < QUESTIONS.length-1){ idx++; renderQ(); }
+    else finish();
+  }, 240);
+}
+
+function goBack(){
+  if (idx===0) return;
+  idx--; renderQ();
+}
+
+/* ══════════ 计分 ══════════ */
+function computeScores(){
+  const sc = {C:0,E:0,L:0,A:0,I:0,O:0};
+  const max = {C:0,E:0,L:0,A:0,I:0,O:0};
+  QUESTIONS.forEach(q=>q.o.forEach(o=>max[o[1]]++));
+  answers.forEach(d=>sc[d]++);
+  const pct = {};
+  Object.keys(sc).forEach(k=>pct[k]=Math.round(sc[k]/max[k]*100));
+  return {sc,max,pct};
+}
+
+function finish(){
+  show('analyzing');
+  const msgs = ['正在解析你的天赋基因…','正在比对 12 种天赋原型…','正在生成你的专属图谱…'];
+  let m=0;
+  const t = setInterval(()=>{
+    m++;
+    const el = document.getElementById('anaTxt');
+    el.style.opacity=0;
+    setTimeout(()=>{ el.textContent = msgs[m%3]; el.style.opacity=1; },250);
+  }, 950);
+  setTimeout(()=>{ clearInterval(t); renderResult(); show('result'); }, 3100);
+}
+
+function getResult(){
+  const {sc,pct} = computeScores();
+  const order = Object.keys(sc).sort((a,b)=> sc[b]-sc[a] || a.localeCompare(b));
+  const p = order[0], s = order[1];
+  const face = (s==='E'||s==='I') ? 'warm' : 'sharp';
+  return { sc, pct, p, s, arch: ARCH[p+'_'+face], key: p+'_'+face };
+}
+
+/* ══════════ 结果渲染 ══════════ */
+function renderResult(){
+  const {sc,pct,p,s,arch,key} = getResult();
+  const hero = document.getElementById('hero');
+  hero.innerHTML = `
+    <div class="hero-tag">YOUR TALENT ARCHETYPE · 你的天赋原型</div>
+    <div class="hero-emoji">${arch.emoji}</div>
+    <div class="hero-name"><span class="gold">${arch.name}</span></div>
+    <div class="hero-en">${arch.en}</div>
+    <div class="hero-slogan">「${arch.slogan}」</div>
+    <div class="rare-pill">✦ 稀缺原型 · 全网约 <b>${arch.rare}%</b> 的人和你一样</div>`;
+  document.getElementById('rDesc').textContent = arch.desc;
+  document.getElementById('rFormula').innerHTML =
+    `你的天赋公式：<b>${DIMS[p].name} ${pct[p]}%</b> × <b>${DIMS[s].name} ${pct[s]}%</b> = 独一无二的 ${arch.name}`;
+  /* 雷达图 */
+  document.getElementById('radar').innerHTML = buildRadar(pct);
+  /* 条形 */
+  const bars = document.getElementById('bars'); bars.innerHTML='';
+  Object.keys(DIMS).forEach(k=>{
+    const row = document.createElement('div'); row.className='bar-row';
+    row.innerHTML = `<span class="bl">${DIMS[k].name}<small>${DIMS[k].sub}</small></span>
+      <span class="bar-track"><span class="bar-fill" style="background:linear-gradient(90deg,${DIMS[k].color}88,${DIMS[k].color})"></span></span>
+      <span class="bv" style="color:${DIMS[k].color}">${pct[k]}%</span>`;
+    bars.appendChild(row);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      row.querySelector('.bar-fill').style.width = pct[k]+'%';
+    }));
+  });
+  /* 超能力 */
+  document.getElementById('powers').innerHTML = arch.powers.map((pw,i)=>
+    `<div class="power"><i>${['⚡','💎','🌟'][i]}</i><span><b>${pw[0]}</b> — ${pw[1]}</span></div>`).join('');
+  /* 领域 */
+  document.getElementById('fields').innerHTML = arch.fields.map(f=>`<span class="tag">${f}</span>`).join('');
+  /* 建议 */
+  document.getElementById('tips').innerHTML = arch.tips.map((t,i)=>
+    `<div class="tip"><i>${i+1}</i><span>${t}</span></div>`).join('');
+  window.__result = {sc,pct,p,s,arch,key};
+}
+
+function buildRadar(pct){
+  const cx=115, cy=112, R=78, N=6;
+  const keys = Object.keys(DIMS);
+  const pt = (i,r)=>{ const ang = -Math.PI/2 + i*2*Math.PI/N; return [cx+r*Math.cos(ang), cy+r*Math.sin(ang)]; };
+  let rings='';
+  for (let ring=1; ring<=4; ring++){
+    const pts = keys.map((k,i)=>pt(i,R*ring/4).join(',')).join(' ');
+    rings += `<polygon points="${pts}" fill="none" stroke="rgba(255,255,255,${ring===4?.28:.12})" stroke-width="1"/>`;
+  }
+  let axes='', labels='';
+  keys.forEach((k,i)=>{
+    const [x,y] = pt(i,R);
+    axes += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(255,255,255,.14)" stroke-width="1"/>`;
+    const [lx,ly] = pt(i,R+17);
+    labels += `<text x="${lx}" y="${ly+4}" text-anchor="middle" font-size="11" fill="${DIMS[k].color}">${DIMS[k].name}</text>`;
+  });
+  const data = keys.map((k,i)=>pt(i, R*pct[k]/100).join(',')).join(' ');
+  const dots = keys.map((k,i)=>{ const [x,y]=pt(i,R*pct[k]/100);
+    return `<circle cx="${x}" cy="${y}" r="3" fill="${DIMS[k].color}"/>`; }).join('');
+  return `<svg width="230" height="228" viewBox="0 0 230 228">
+    ${rings}${axes}
+    <polygon class="radar-poly" points="${data}" fill="rgba(232,182,76,.22)" stroke="#e8b64c" stroke-width="2" stroke-linejoin="round"/>
+    ${dots}${labels}</svg>`;
+}
+
+/* ══════════ 海报生成 ══════════ */
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  setTimeout(()=>t.classList.remove('on'), 1800);
+}
+
+function drawQR(ctx,x,y,size){
+  /* 占位二维码：交付时替换为你的真实小程序码 / 商品二维码图片 */
+  ctx.save();
+  ctx.fillStyle='#0d0620'; ctx.fillRect(x-6,y-6,size+12,size+12);
+  ctx.fillStyle='#f3edff';
+  const cell = size/21;
+  const finder=(fx,fy)=>{ ctx.fillRect(x+fx*cell,y+fy*cell,cell*7,cell*7);
+    ctx.fillStyle='#0d0620'; ctx.fillRect(x+(fx+1)*cell,y+(fy+1)*cell,cell*5,cell*5);
+    ctx.fillStyle='#f3edff'; ctx.fillRect(x+(fx+2)*cell,y+(fy+2)*cell,cell*3,cell*3); };
+  finder(0,0); finder(14,0); finder(0,14);
+  let seed = 7;
+  for (let r=0;r<21;r++) for (let c=0;c<21;c++){
+    const inFinder = (r<8&&c<8)||(r<8&&c>12)||(r>12&&c<8);
+    if (inFinder) continue;
+    seed = (seed*1103515245+12345)%2147483648;
+    if (seed%100<46) ctx.fillRect(x+c*cell,y+r*cell,cell*.92,cell*.92);
+  }
+  ctx.restore();
+}
+
+function genPoster(){
+  const r = window.__result; if(!r) return;
+  const arch = r.arch, pct = r.pct;
+  const W=750, H=1360;
+  const cv = document.createElement('canvas'); cv.width=W; cv.height=H;
+  const ctx = cv.getContext('2d');
+  /* 背景 */
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#33195f'); g.addColorStop(.45,'#22104a'); g.addColorStop(1,'#120826');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  const glow = ctx.createRadialGradient(W/2,300,20,W/2,300,420);
+  glow.addColorStop(0,'rgba(232,182,76,.16)'); glow.addColorStop(1,'transparent');
+  ctx.fillStyle=glow; ctx.fillRect(0,0,W,H);
+  /* 星点 */
+  ctx.fillStyle='rgba(255,255,255,.7)';
+  for(let i=0;i<70;i++){ const x=Math.sin(i*57.3)*375+375+ (i*97%140)-70, y=(i*211)%1250;
+    ctx.globalAlpha=.15+ (i*37%60)/100; ctx.fillRect(x,y,2.4,2.4); }
+  ctx.globalAlpha=1;
+  /* 顶部 */
+  ctx.textAlign='center';
+  ctx.fillStyle='#d9c8ff'; ctx.font='500 22px -apple-system,"PingFang SC",sans-serif';
+  ctx.fillText('TALENT DNA · 天赋潜能测试', W/2, 92);
+  ctx.font='260px serif'; ctx.fillText(arch.emoji, W/2, 300);
+  const gold = ctx.createLinearGradient(150,0,600,0);
+  gold.addColorStop(0,'#f9ecb8'); gold.addColorStop(.5,'#e8b64c'); gold.addColorStop(1,'#fff3cf');
+  ctx.fillStyle=gold; ctx.font='900 76px -apple-system,"PingFang SC",sans-serif';
+  ctx.fillText(arch.name, W/2, 392);
+  ctx.fillStyle='#c4b2ee'; ctx.font='600 22px Georgia,serif';
+  ctx.fillText(arch.en.split('').join(' '), W/2, 428);
+  ctx.fillStyle='#f0e8ff'; ctx.font='500 28px -apple-system,"PingFang SC",sans-serif';
+  ctx.fillText('「'+arch.slogan+'」', W/2, 482);
+  /* 稀缺 pill */
+  const pillY=530, pillW=430;
+  ctx.strokeStyle='rgba(232,182,76,.7)'; ctx.lineWidth=1.6;
+  roundRect(ctx, W/2-pillW/2, pillY-34, pillW, 56, 28); ctx.stroke();
+  ctx.fillStyle='rgba(232,182,76,.12)'; roundRect(ctx, W/2-pillW/2, pillY-34, pillW, 56, 28); ctx.fill();
+  ctx.fillStyle='#f7e08b'; ctx.font='700 24px -apple-system,"PingFang SC",sans-serif';
+  ctx.fillText(`稀缺原型 · 全网约 ${arch.rare}% 的人和你一样`, W/2, pillY+5);
+  /* 雷达 */
+  drawRadarPoster(ctx, W/2, 775, 138, pct);
+  /* 超能力 */
+  ctx.fillStyle='#f2d98a'; ctx.font='800 26px -apple-system,"PingFang SC",sans-serif';
+  ctx.fillText('✦ 三大天赋超能力 ✦', W/2, 990);
+  ctx.font='500 23px -apple-system,"PingFang SC",sans-serif'; ctx.fillStyle='#e9e0fb';
+  arch.powers.forEach((pw,i)=> ctx.fillText(`${['⚡','💎','🌟'][i]} ${pw[0]} — ${pw[1]}`, W/2, 1032+i*40));
+  /* 底部 */
+  ctx.textAlign='left';
+  drawQR(ctx, 70, 1140, 108);
+  ctx.fillStyle='#f0e8ff'; ctx.font='700 25px -apple-system,"PingFang SC",sans-serif';
+  ctx.fillText('你的隐藏天赋是什么？', 208, 1178);
+  ctx.fillStyle='#a593d6'; ctx.font='400 19px -apple-system,"PingFang SC",sans-serif';
+  ctx.fillText('扫码 8 分钟 · 解锁你的天赋原型', 208, 1212);
+  ctx.fillText('本测试为娱乐向内容 · 非专业测评 · 仅供参考', 208, 1240);
+  /* 输出 */
+  const img = document.getElementById('posterImg');
+  img.src = cv.toDataURL('image/png');
+  document.getElementById('posterMask').classList.add('on');
+  toast('海报已生成 ✨');
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+
+function drawRadarPoster(ctx,cx,cy,R,pct){
+  const N=6, keys=Object.keys(DIMS);
+  const pt=(i,r)=>{ const a=-Math.PI/2+i*2*Math.PI/N; return [cx+r*Math.cos(a), cy+r*Math.sin(a)]; };
+  ctx.strokeStyle='rgba(255,255,255,.18)'; ctx.lineWidth=1;
+  for(let ring=1;ring<=4;ring++){
+    ctx.beginPath();
+    keys.forEach((k,i)=>{ const [x,y]=pt(i,R*ring/4); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+    ctx.closePath(); ctx.stroke();
+  }
+  keys.forEach((k,i)=>{ const [x,y]=pt(i,R);
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(x,y); ctx.stroke(); });
+  ctx.beginPath();
+  keys.forEach((k,i)=>{ const [x,y]=pt(i,R*pct[k]/100); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+  ctx.closePath();
+  ctx.fillStyle='rgba(232,182,76,.25)'; ctx.fill();
+  ctx.strokeStyle='#e8b64c'; ctx.lineWidth=2.5; ctx.stroke();
+  keys.forEach((k,i)=>{ const [x,y]=pt(i,R*pct[k]/100);
+    ctx.beginPath(); ctx.arc(x,y,4.5,0,7); ctx.fillStyle=DIMS[k].color; ctx.fill(); });
+  ctx.font='600 20px -apple-system,"PingFang SC",sans-serif'; ctx.textAlign='center';
+  keys.forEach((k,i)=>{ const [x,y]=pt(i,R+26);
+    ctx.fillStyle=DIMS[k].color; ctx.fillText(`${DIMS[k].name} ${pct[k]}%`, x, y+7); });
+}
+
+/* ══════════ 预览模式（?demo=key 或 ?demo=1） ══════════ */
+(function(){
+  const dm = new URLSearchParams(location.search).get('demo');
+  if (!dm) return;
+  const keys = Object.keys(ARCH);
+  const key = keys.includes(dm) ? dm : keys[Math.floor(Math.random()*keys.length)];
+  const p = key.split('_')[0], face = key.split('_')[1];
+  const sec = face==='warm' ? 'E' : 'L';
+  for (let i=0;i<QUESTIONS.length;i++){
+    const dims = QUESTIONS[i].o.map(o=>o[1]);
+    answers[i] = dims.includes(p) ? p : (dims.includes(sec) ? sec : dims[0]);
+  }
+  renderResult(); show('result');
+})();
+</script>
+
+
+</body></html>
